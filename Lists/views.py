@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.http import HttpResponse
 
@@ -20,7 +19,7 @@ from .models import TList, Element
 from rest_framework import viewsets
 from .serializer import ListSerializer, ElementSerializer
 
-@login_required
+
 @api_view(['POST'])
 def create_list_with_element(request):
 
@@ -81,7 +80,7 @@ def get_list_with_elements(request, list_id):
 Delete a list!
 '''
 
-@login_required
+
 @api_view(['DELETE'])
 def delete_list(request, list_id):
     try:
@@ -103,7 +102,7 @@ Updating a list or its elements:
 • Updating or deleting existing elements.
 '''
 
-@login_required
+
 @api_view(['PUT'])
 def update_list(request, list_id):
     try:
@@ -151,7 +150,7 @@ def update_list(request, list_id):
 
 
 
-@login_required
+
 @api_view(['POST'])
 def like_list(request, list_id):
     '''
