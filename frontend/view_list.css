@@ -1,10 +1,7 @@
 
 
 
-.list {
-    width: 400px;
-    margin: auto;
-}
+
 
 #form-container {
     border: 1px solid #000;
@@ -12,23 +9,6 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     font-family: Arial, sans-serif;
 }
-
-input {
-    padding: 10px;
-}
-
-#list-name {
-        width: calc(100% - 22px);
-        outline: 0;
-        border-width: 0 0 2px;
-        border-color: rgb(0, 0, 0);
-        margin-bottom: 10px;
-      }
-      
-#list-name:focus {
-        border-color: rgb(55, 55, 55);
-      }
-
 
 .wrapper {
     display: flex; 
@@ -43,15 +23,7 @@ input {
     border-width: 0.5 0.5 0.5 0.5;
 }
 
-.right-element {
-    margin-left: 15px;
-    padding: 10px;
-   
-}
 
-#add-to-list-input {
-    width: 100%;
-}
 
 button {
     background: none;
@@ -62,6 +34,22 @@ button {
 	outline: inherit;
 }
 
+button:hover {
+    color: rgb(1, 71, 94);
+
+}
 
 
+img {
+    width: 400px; /* Adjust the width as needed */
+    height: auto; /* Keeps the aspect ratio of the image */
+}
 
+#container-list {
+    background-color: white;
+    padding: 20px;
+    margin: 65px -100px;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+}

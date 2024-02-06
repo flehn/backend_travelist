@@ -28,6 +28,15 @@ def create_list_with_element(request):
         element_data = request.data.get('elements')
 
         list_serializer = ListSerializer(data=list_data)
+        
+        if not list_serializer.is_valid():
+             return Response(list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if at least one element is added to the list
+        if not element_data:  # Checks if element_data is None or empty
+            return Response({'error': 'At least one element needs to be added'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+        
         if list_serializer.is_valid():
             list_serializer.save()
 

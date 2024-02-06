@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const elements_nodes = document.querySelectorAll('.elements-container .wrapper .element');
       
       let elements = []; // Array to hold the dictionaries
-
+        
       elements_nodes.forEach(elementDiv => {
         console.log(elementDiv);
         const pTag = elementDiv.querySelector('p');
