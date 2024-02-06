@@ -159,8 +159,8 @@ def like_list(request, list_id):
     '''
     if request.method == 'POST':
         user = request.user
-        list_id = request.data.get('list_id')
-        list_obj = TList.objects.get(id=list_id)
+        list_id = request.data.get('list')
+        list_obj = TList.objects.get(id=list_id['id'])
 
         if user in list_obj.likes.all():
             list_obj.likes.remove(user)

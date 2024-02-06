@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Creation Form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="list">
+        <div id="form-container">
+            <input type="text" id="list-name" placeholder="Name the List">
+            <div class="wrapper">
+                <div class="left-element">
+                    <input type="text" id="add-to-list-input" placeholder="Search for a Cafe, etc.">
+                </div>
+                <div class="right-element" class="button-text">
+                    <button class="add-to-list-btn">Add to List</button>
+                </div>
+            </div>
+            
+            <div class="elements-container">
+                <!-- This is added by JS:
+                    <div class="wrapper">
+                        <div class="left-element element">
+                            <p>${input}</p>
+                        </div>
+                        <div class="right-element">
+                            <button class="remove-element">Remove</button>
+                        </div>
+                    </div>
+                -->
+               
+            </div>
+        </div>
+    
+
+        <button id="create-list">Create List</button>
+    </div>
+    
+
+    <script src="main.js"></script>
+</body>
+</html>
