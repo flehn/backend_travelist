@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt', #UserAuthentification ( Simple JWT package)
     'corsheaders', #for CORS 
     'Users',
     'Lists',
@@ -60,6 +61,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION _CLASSES': [
+    'rest_framework_simplejwt.authentication.JWAuthentication'
+    ],
+    
+}
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",

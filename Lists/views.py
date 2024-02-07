@@ -11,6 +11,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
     IsAdminUser,
 )
+
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -21,11 +22,26 @@ from .serializer import ListSerializer, ElementSerializer
 
 
 @api_view(['POST'])
+#@permission_classes([IsAuthenticated])
 def create_list_with_element(request):
+
+    print(f'request.header: {request.headers}')  # Debug: Print the request headers
+    print(f'request.user: {request.user}')  # Debug: Print the user object
+
 
     if request.method == 'POST':
         list_data = request.data.get('list')
         element_data = request.data.get('elements')
+
+        print(f'list_data: {list_data}')  # Debug: print list
+        print(f'request.user.id: {request.user.id}') # Debug: user id 
+
+        # automatically add current user id to the created list. 
+        if request.user.id == None:
+            return Response({'message': 'List cant have Author None'}, status=status.HTTP_400_BAD_REQUEST) 
+        else:
+            list_data['author'] = request.user.id
+        
 
         list_serializer = ListSerializer(data=list_data)
         
@@ -37,6 +53,9 @@ def create_list_with_element(request):
             return Response({'error': 'At least one element needs to be added'}, 
                             status=status.HTTP_400_BAD_REQUEST)
         
+                    
+  
+
         if list_serializer.is_valid():
             list_serializer.save()
 
@@ -90,7 +109,22 @@ Delete a list!
 '''
 
 
+class Delete_list_view(APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, list_id, format=None):
+        try:
+            list_to_delete = TList.objects.get(id=list_id)
+            list_to_delete.delete()
+            return Response({'message': 'List deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except TList.DoesNotExist:
+            return Response({'error': 'List not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse ({"response": "YOU ARE ALLOWED HERE"})
+                         
+
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_list(request, list_id):
     try:
         list_to_delete = TList.objects.get(id=list_id)
@@ -113,6 +147,7 @@ Updating a list or its elements:
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_list(request, list_id):
     try:
         list_to_update = TList.objects.get(id=list_id)
@@ -161,6 +196,7 @@ def update_list(request, list_id):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def like_list(request, list_id):
     '''
     this function adds the like function, a user can like a list, if he clicks again, his like is removed. 
