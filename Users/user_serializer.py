@@ -1,5 +1,9 @@
 
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+from Lists.serializer import ListSerializer
 from rest_framework import serializers
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -14,7 +18,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     @classmethod
     def get_token(cls, user):
-        return RefreshToken.for_user(user)
+
+        token = RefreshToken.for_user(user)
+        
+        # Add custom claims
+        token['username'] = user.username
+
+        return token
     
     def validate(self, attrs):
         
@@ -29,14 +39,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
         
-    
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email']
+        fields = '__all__'
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -46,3 +55,11 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+    
+
+class ProfileSerializer(serializers.ModelSerializer):
+    notes = ListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = '__all__'

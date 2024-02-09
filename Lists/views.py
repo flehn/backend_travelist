@@ -22,7 +22,7 @@ from .serializer import ListSerializer, ElementSerializer
 
 
 @api_view(['POST'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def create_list_with_element(request):
 
     print(f'request.header: {request.headers}')  # Debug: Print the request headers

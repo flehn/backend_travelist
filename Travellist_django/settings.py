@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'Lists',
 ]
 
+AUTH_USER_MODEL = 'Users.CustomUser'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -63,11 +65,11 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-'DEFAULT_AUTHENTICATION _CLASSES': [
-    'rest_framework_simplejwt.authentication.JWAuthentication'
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    
 }
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
