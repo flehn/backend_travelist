@@ -1,65 +1,75 @@
+from django.contrib.auth import authenticate
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 #from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
-User = get_user_model()
+from django.contrib.auth import authenticate
 
 from Lists.serializer import ListSerializer
-from rest_framework import serializers
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken 
-'''
-This data usually includes the user_id, but what if we wanted to include the username as well without having to make a separate request to the server?
 
-To do this, we can create a custom serializer that extends the TokenObtainPairSerializer class and overrides the get_token() method. In this method, we can add a new claim to the token, such as the username. The modified serializer looks like this:
-'''
+User = get_user_model()
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    #https://stackoverflow.com/questions/54544978/customizing-jwt-response-from-django-rest-framework-simplejwt
-
     @classmethod
     def get_token(cls, user):
-
         token = RefreshToken.for_user(user)
-        
         # Add custom claims
-        token['username'] = user.username
-
+        token['username'] = user.get_username()  # Assuming you're using the email as the username field
         return token
     
     def validate(self, attrs):
-        
+        # Authenticate using email and password
+        user = authenticate(email=attrs.get('email'), password=attrs.get('password'))
+        if user is None:
+            raise serializers.ValidationError('No user with this email and password was found.')
+
         data = super().validate(attrs)
-
-        refresh = self.get_token(self.user)
-        
-
+        refresh = self.get_token(user)
         data['refresh'] = str(refresh)
         data['access'] = str(refresh.access_token)
+        # Optionally include the username (or email) in the response
+        # data['username'] = user.get_username()
 
         return data
 
-        
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
-class UserSerializer(serializers.ModelSerializer):
+User = get_user_model()
+
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True, label="Confirm password")
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('email', 'password', 'password2')
+
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError("Passwords must match.")
+        return data
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data.get('email', ''),
+            email=validated_data['email'],
+            password=validated_data['password']
         )
-        user.set_password(validated_data['password'])
-        user.save()
         return user
-    
+
+
 
 class ProfileSerializer(serializers.ModelSerializer):
-    notes = ListSerializer(many=True, read_only=True)
+    # Assuming 'tlists' is the related name for TList instances associated with this user
+    tlists = ListSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'email', 'tlists']  # Include relevant fields and the related travel lists
+
+

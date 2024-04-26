@@ -12,12 +12,14 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import environ
 import os 
 
+
 env = environ.Env()
 environ.Env.read_env()
 
 # Your secret key
 SECRET_KEY = env("SECRET_KEY")
 
+from datetime import timedelta #For JWT TOKEN 
 
 from pathlib import Path
 
@@ -38,25 +40,30 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework_simplejwt', #UserAuthentification ( Simple JWT package)
-    'corsheaders', #for CORS 
-    'Users',
-    'Lists',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
+    # installed apps
+    "rest_framework",
+    "djoser",
+    "rest_framework_simplejwt.token_blacklist",
+    "corsheaders", #for CORS 
+    #'Users',
+    "Lists",
 ]
 
-AUTH_USER_MODEL = 'Users.CustomUser'
+
+
+
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', #for CORS 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', #for CORS 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -64,23 +71,56 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-}
 
+
+
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://localhost:3000",
+    "https://127.0.0.1:3000",
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 ROOT_URLCONF = 'Travellist_django.urls'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Path to central static directory for CSS, JS etc.
-]
+
+
+
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+DJOSER = {
+    "PASSWORD_RESET_CONFIRM_URL": "auth/password/reset-password-confirmation/?uid={uid}&token={token}",
+    "ACTIVATION_URL": "#/activate/{uid}/{token}",
+    "USER_CREATE_PASSWORD_RETYPE": False,
+    "SEND_ACTIVATION_EMAIL": False,
+    "SERIALIZERS": {},
+}
+
+
 
 TEMPLATES = [
     {

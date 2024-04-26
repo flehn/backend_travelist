@@ -14,16 +14,44 @@ from .models import TList, Element
 
 
 
-
 class ElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
-        fields = ['id', 'name', 'tlist']  
+        fields = ['id', 'name']  # Remove 'tlist' from fields if it is currently listed
+
+    def create(self, validated_data):
+        # Assume `tlist` is handled externally in the ListSerializer
+        return Element.objects.create(**validated_data)
+
+
+
 
 class ListSerializer(serializers.ModelSerializer):
-    #include a nested ElementSerializer. This will allow to serialize the elements related to each list.
-    elements = ElementSerializer(many=True, read_only=True)
+    elements = ElementSerializer(many=True)
 
     class Meta:
         model = TList
-        fields = ['id', 'name', 'author', 'elements'] 
+        fields = ['id', 'name', 'author', 'is_public', 'elements', 'likes']
+        #read_only_fields = ['author']
+
+    def create(self, validated_data):
+        elements_data = validated_data.pop('elements', [])
+        list_instance = TList.objects.create(**validated_data)
+
+        for element_data in elements_data:
+            # Set 'tlist' explicitly here
+            Element.objects.create(tlist=list_instance, **element_data)
+
+        return list_instance
+
+
+    def get_likes_count(self, obj):
+        # This method returns the count of likes if likes is a ManyToManyField with User
+        return obj.likes.count()
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['elements'] = ElementSerializer(instance.elements.all(), many=True).data
+        return representation
+
+

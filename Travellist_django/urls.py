@@ -15,18 +15,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-) #based on: https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
+from Auth.views import LogoutView
+
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("lists/", include("Lists.urls")),
-    path("users/", include("Users.urls")),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    #path("users/", include("Users.urls")),
+
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.jwt")),
+    path("auth/logout/", LogoutView.as_view()),
 ]
 
+'''
+Below are the Djoser URLs we'll be utilizing:
+
+/users/: Submitting a POST request to this route creates a new user account on the Django backend, serving as the registration process.
+/users/me/: A GET request to this endpoint returns information about the currently authenticated user, requiring the user to be logged in.
+/users/reset_password/: A POST request here initiates a password reset process by sending an email to the provided address with a password reset link, but only if the user account exists.
+/users/reset_password_confirm/: By making a POST request to this route with the uid, token, and new_password, the user can reset their password to the new value specified in the new_password field.
+/jwt/create/: This endpoint is used for logging in, where it authenticates the user and returns a JWT for subsequent authenticated requests.
+/jwt/refresh/: This endpoint is for refreshing an existing access token by providing a valid refresh token, thus granting a new access token.
+'''
 

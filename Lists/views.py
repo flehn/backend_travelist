@@ -21,64 +21,33 @@ from rest_framework import viewsets
 from .serializer import ListSerializer, ElementSerializer
 
 
+
+
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_list_with_element(request):
 
     print(f'request.header: {request.headers}')  # Debug: Print the request headers
     print(f'request.user: {request.user}')  # Debug: Print the user object
+    print(f'request.data: {request.data}')
+
+    # Prepare data for serialization
+    data = {
+        'name': request.data.get('list_name'),
+        'is_public': request.data.get('is_public'),
+        'elements': request.data.get('elements'),
+        'author': request.user.id  # Pass the user ID instead of the user object
+    }
+
+    serializer = ListSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    if request.method == 'POST':
-        list_data = request.data.get('list')
-        element_data = request.data.get('elements')
-
-        print(f'list_data: {list_data}')  # Debug: print list
-        print(f'request.user.id: {request.user.id}') # Debug: user id 
-
-        # automatically add current user id to the created list. 
-        if request.user.id == None:
-            return Response({'message': 'List cant have Author None'}, status=status.HTTP_400_BAD_REQUEST) 
-        else:
-            list_data['author'] = request.user.id
-        
-
-        list_serializer = ListSerializer(data=list_data)
-        
-        if not list_serializer.is_valid():
-             return Response(list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if at least one element is added to the list
-        if not element_data:  # Checks if element_data is None or empty
-            return Response({'error': 'At least one element needs to be added'}, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        
-                    
-  
-
-        if list_serializer.is_valid():
-            list_serializer.save()
-
-            #Directly use the saved list to get its ID:
-            list_id = list_serializer.instance
-
-            # create key-value pair to add the list_id
-            list_id_dict = {"tlist": list_id.id}
-            
-
-            added_elements = [] #For Debugging purposes only, so we can return the Response with the added elements (Line 50).
-            for element in element_data:
-                #Add the missing list_id to each element. [{"name":"Cafe"}, {"name":"Club"}] -> [{"name":"Cafe", {"tlist": list_id.id}}, {"name":"Club"}, {"tlist": list_id.id}]
-                element.update(list_id_dict)
-
-                element_serializer = ElementSerializer(data=element)
-                if element_serializer.is_valid():
-                    element_serializer.save()
-                    added_elements.append(element)
-            return Response({'list': list_serializer.data, 'elements': added_elements}, status=status.HTTP_201_CREATED)
-
-
-        return Response(list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 '''
@@ -88,18 +57,17 @@ Get a list
 @api_view(['GET'])
 def get_list_with_elements(request, list_id):
     try:
+        
         list_instance = TList.objects.get(id=list_id)
         list_serializer = ListSerializer(list_instance)
         
-        # Manually fetch and serialize the elements
-        elements = Element.objects.filter(tlist_id=list_id)
-        elements_serializer = ElementSerializer(elements, many=True)
-
-        # Add the serialized elements to the list's response data
-        response_data = list_serializer.data
-        response_data['elements'] = elements_serializer.data
-
-        return Response(response_data)
+        
+        data = list_serializer.data
+        
+        # Manually add the count of likes to the serialized data
+        data['likes_count'] = list_instance.likes.count()
+        
+        return Response(data)
     
     except TList.DoesNotExist:
         return Response({'error': 'List not found'}, status=404)
@@ -148,12 +116,12 @@ Updating a list or its elements:
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_list(request, list_id):
+def update_list(request):
     try:
-        list_to_update = TList.objects.get(id=list_id)
+        list_data = request.data.get('list')
+        list_to_update = TList.objects.get(id=list_data['id'])
 
         # Update list attributes
-        list_data = request.data.get('list')
         list_serializer = ListSerializer(list_to_update, data=list_data, partial=True)
         if list_serializer.is_valid():
             list_serializer.save()
@@ -165,11 +133,11 @@ def update_list(request, list_id):
                 element_id = element_data.get('id')
                 if element_id:
                     # Update existing element
-                    element = Element.objects.get(id=element_id, tlist=list_id)
+                    element = Element.objects.get(id=element_id, tlist=list_data['id'])
                     element_serializer = ElementSerializer(element, data=element_data, partial=True)
                 else:
                     # Create new element
-                    element_data['tlist'] = list_id
+                    element_data['tlist'] = list_data['id']
                     element_serializer = ElementSerializer(data=element_data)
 
                 if element_serializer.is_valid():
@@ -197,15 +165,17 @@ def update_list(request, list_id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def like_list(request, list_id):
+def like_list(request):
     '''
     this function adds the like function, a user can like a list, if he clicks again, his like is removed. 
     Only Logged In users can like a list. 
     '''
     if request.method == 'POST':
         user = request.user
-        list_id = request.data.get('list')
-        list_obj = TList.objects.get(id=list_id['id'])
+        
+        list_id = request.data.get('list_id')
+        
+        list_obj = TList.objects.get(id=list_id)
 
         if user in list_obj.likes.all():
             list_obj.likes.remove(user)
